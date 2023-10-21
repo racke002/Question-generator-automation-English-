@@ -1,0 +1,91 @@
+import pandas as pd
+from tqdm import tqdm
+from transformers import T5ForConditionalGeneration, T5TokenizerFast
+
+input_file_path = r"C:\Users\Ryan\Desktop\Python Projects\Question generation (input)\whole text (english).csv"
+
+tokenizer = T5TokenizerFast.from_pretrained("valhalla/t5-base-e2e-qg")
+hfmodel = T5ForConditionalGeneration.from_pretrained("valhalla/t5-base-e2e-qg")
+
+def run_model(input_string, **generator_args):
+    generator_args = {
+        "max_length": 1968,
+        "num_beams": 3,
+        "length_penalty": 2.5,
+        "no_repeat_ngram_size": 4,
+        "early_stopping": False,
+    }
+    input_string = "generate questions: " + input_string + " </s>"
+    input_ids = tokenizer.encode(input_string, return_tensors="pt")
+    res = hfmodel.generate(input_ids, **generator_args)
+    output = tokenizer.batch_decode(res, skip_special_tokens=True)
+    output = [item.split("<sep>") for item in output]
+    return output
+
+# Read the input Excel file
+df = pd.read_csv(input_file_path)
+
+# Create a list to store the generated questions
+generated_questions = []
+
+# Loop through each row of the file and generate questions
+for _, row in tqdm(df.iterrows(), total=len(df)):
+    example_text = row["TEXT"]  # Modify the column name here if needed
+    questions = run_model(example_text)
+
+    # Limit the number of generated questions to [:X]
+    generated_questions.extend(questions[0][:5])
+
+# Create a new dataframe with the generated questions
+questions_df = pd.DataFrame({"Generated Questions": generated_questions})
+
+# Save the generated questions to a new Excel file
+output_file_path = r"C:\Users\Ryan\Desktop\Python Projects\Question generation (output)\whole text output (5q english).csv"
+questions_df.to_csv(output_file_path, index=False)
+
+print("Question generation completed and saved to:", output_file_path)import pandas as pd
+from tqdm import tqdm
+from transformers import T5ForConditionalGeneration, T5TokenizerFast
+
+input_file_path = r"C:\Users\Ryan\Desktop\Python Projects\Question generation (input)\whole text (english).csv"
+
+tokenizer = T5TokenizerFast.from_pretrained("valhalla/t5-base-e2e-qg")
+hfmodel = T5ForConditionalGeneration.from_pretrained("valhalla/t5-base-e2e-qg")
+
+def run_model(input_string, **generator_args):
+    generator_args = {
+        "max_length": 1968,
+        "num_beams": 3,
+        "length_penalty": 2.5,
+        "no_repeat_ngram_size": 4,
+        "early_stopping": False,
+    }
+    input_string = "generate questions: " + input_string + " </s>"
+    input_ids = tokenizer.encode(input_string, return_tensors="pt")
+    res = hfmodel.generate(input_ids, **generator_args)
+    output = tokenizer.batch_decode(res, skip_special_tokens=True)
+    output = [item.split("<sep>") for item in output]
+    return output
+
+# Read the input Excel file
+df = pd.read_csv(input_file_path)
+
+# Create a list to store the generated questions
+generated_questions = []
+
+# Loop through each row of the file and generate questions
+for _, row in tqdm(df.iterrows(), total=len(df)):
+    example_text = row["TEXT"]  # Modify the column name here if needed
+    questions = run_model(example_text)
+
+    # Limit the number of generated questions to [:X]
+    generated_questions.extend(questions[0][:5])
+
+# Create a new dataframe with the generated questions
+questions_df = pd.DataFrame({"Generated Questions": generated_questions})
+
+# Save the generated questions to a new Excel file
+output_file_path = r"C:\Users\Ryan\Desktop\Python Projects\Question generation (output)\whole text output (5q english).csv"
+questions_df.to_csv(output_file_path, index=False)
+
+print("Question generation completed and saved to:", output_file_path)
